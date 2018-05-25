@@ -234,8 +234,5 @@ void MyGraphicsView::mousePressEvent(QMouseEvent *event)
 			}
 		}
     }
-    if (event->button() == Qt::RightButton){
-
-    }
 }
 

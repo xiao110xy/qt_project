@@ -79,6 +79,7 @@ void MainWindow::onPressLoadImage()
     {
         m_graphicsScene2->clear();
     }
+    image = qimg;
 	temp_image = qimg;
 	roi_image = qimg;
     m_graphicsScene2->setSceneRect(qimg.rect());
@@ -125,15 +126,6 @@ void MainWindow::onPressFitWindow()
     ui->m_graphicsView2->viewFit();
 }
 
-void MainWindow::on_image_origin_clicked()
-{
-    if (!m_graphicsScene2->sceneRect().isEmpty())
-    {
-        m_graphicsScene2->clear();
-    }
-    m_graphicsScene2->setSceneRect(roi_image.rect());
-    m_graphicsScene2->addPixmap(QPixmap::fromImage(roi_image));
-}
 
 void MainWindow::on_roi_top_clicked()
 {
@@ -184,7 +176,7 @@ void MainWindow::on_preview_clicked()
 	}
 	// roi image 裁剪
 	QPoint temp_distance = (base_point1 - base_point2).toPoint();
-	QImage data = temp_image;
+    QImage data = image;
 	int height = m_graphicsScene2->sceneRect().height();
 	int width = m_graphicsScene2->sceneRect().width();
 	for (int i = 0; i < width; ++i) 
@@ -221,11 +213,12 @@ void MainWindow::on_imageprocess_clicked()
 			bground.setPixel(x, y + 25, qRgb(0xFF, 0xFF, 0xFF));
 			bground.setPixel(x + 25, y + 25, qRgb(0xCA, 0xCA, 0xCA));
 		}
-	}
+    }
+    image = temp_image;
 	m_graphicsScene1 = new QGraphicsScene();
 	m_graphicsScene1->setItemIndexMethod(QGraphicsScene::NoIndex);
 	m_graphicsScene1->setBackgroundBrush(QPixmap::fromImage(bground));
 	m_graphicsScene1->setSceneRect(temp_image.rect());
-	m_graphicsScene1->addPixmap(QPixmap::fromImage(temp_image));
+    m_graphicsScene1->addPixmap(QPixmap::fromImage(image));
 	ui->m_graphicsView1->setScene(m_graphicsScene1);
 }

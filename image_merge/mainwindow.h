@@ -21,6 +21,7 @@ private:
     QGraphicsScene* m_graphicsScene1;
     QGraphicsScene* m_graphicsScene2;
     QGraphicsScene* m_graphicsScene3;
+    QImage image;
 	QImage temp_image;
     QImage roi_image;
 
@@ -31,7 +32,6 @@ private slots:
     void onPressLoadImage();
     void onPressSaveImage();
     void onPressFitWindow();
-    void on_image_origin_clicked();
     void on_roi_top_clicked();
     void on_roi_bottom_clicked();
     void on_roi_point_clicked();
