@@ -2,4 +2,5 @@
 xy
 test
 #
-image_merge\image_merge.pro.user
+.vs
+*.pro.user

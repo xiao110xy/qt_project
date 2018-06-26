@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1070</width>
-    <height>792</height>
+    <width>1050</width>
+    <height>780</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -205,7 +205,7 @@ Zoom -&gt; Ctrl+Wheel</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1070</width>
+     <width>1050</width>
      <height>22</height>
     </rect>
    </property>

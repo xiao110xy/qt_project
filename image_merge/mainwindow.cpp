@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setFixedSize(1050,780);
     QImage bground(50, 50, QImage::Format_RGB888);
     for (int y = 0; y < 25; y++)
     {
