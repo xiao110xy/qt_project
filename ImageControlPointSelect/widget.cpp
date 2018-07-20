@@ -179,7 +179,7 @@ void Widget::pushbotton_savePts()
 	QTextStream Out(&f);
 	int row = ui->tableWidget->rowCount();
 	if (row > 0) {
-		Out << "0,0,0," << QString::number(row, 10) <<";"<<endl;
+        Out << "0,0,0,0," << QString::number(row, 10) <<";"<<endl;
 		QRect temp = ui->graphicsView2->roi_Group->rect().toRect();
 		Out << temp.x()<<","<<temp.y() << "," <<
 			temp.width() << "," <<temp.height()<<";" << endl;
@@ -232,7 +232,7 @@ void Widget::pushbotton_reloadPts()
 		i = j;
 		temp.push_back(temp_value);
 	}
-	int nLine = temp[3];
+    int nLine = temp[4];
 	ui->tableWidget->clearContents();//只清除表中数据，不清除表头内容
 	ui->tableWidget->setRowCount(nLine);
 	LineStr = txtInput.readLine();
