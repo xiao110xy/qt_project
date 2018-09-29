@@ -57,9 +57,16 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="get_roi">
+      <widget class="QPushButton" name="get_roi_1">
        <property name="text">
         <string>Get roi</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="get_roi_2">
+       <property name="text">
+        <string>Get sub roi</string>
        </property>
       </widget>
      </item>

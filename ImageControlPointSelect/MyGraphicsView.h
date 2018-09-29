@@ -36,13 +36,19 @@ signals:
 public:
 	QPointF base_point;
 	QGraphicsItemGroup *green_circleGroup;
-	QGraphicsRectItem *roi_Group;
-	QPoint roi_left_top;
-	bool m_dragged1;
-	QPoint roi_right_bottom;
-	bool m_dragged2;
+
 	std::vector<QGraphicsItemGroup*> point_list;
 	std::vector<QGraphicsTextItem*> text_list;
+	QGraphicsRectItem *roi_Group1;
+	QPoint roi_left_top1;
+	bool m_dragged1 = false;
+	QPoint roi_right_bottom1;
+	bool m_dragged2 = false;
+	QGraphicsRectItem *roi_Group2;
+	QPoint roi_left_top2;
+	bool m_dragged3 = false;
+	QPoint roi_right_bottom2;
+	bool m_dragged4 = false;
 
 protected slots:
 	void addDrawPoint();
@@ -50,4 +56,6 @@ protected slots:
 	void removeDrawPoint(int row);
 	void DrawRoi(QRect roi_rect);
 	void DrawRoi();
+	void DrawSubRoi(QRect roi_rect);
+	void DrawSubRoi();
 };

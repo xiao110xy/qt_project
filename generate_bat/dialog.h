@@ -41,6 +41,7 @@ public slots:
 	void push_result_image();
 	void push_result_txt();
 	void push_save_bat();
+	void push_open_bat();
 };
 
 #endif // DIALOG_H

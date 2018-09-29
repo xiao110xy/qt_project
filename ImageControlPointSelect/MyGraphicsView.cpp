@@ -12,7 +12,8 @@ MyGraphicsView::MyGraphicsView(QWidget *parent)
 	base_point.setY(-9999);
 
 	green_circleGroup = nullptr;
-	roi_Group = nullptr;
+	roi_Group1 = nullptr;
+	roi_Group2 = nullptr;
 
 }
 
@@ -109,14 +110,32 @@ void MyGraphicsView::resizeEvent(QResizeEvent *event)
 void MyGraphicsView::mousePressEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton) {
-		float distance1, distance2;
+		float distance1, distance2, distance3, distance4;
 		QPointF temp_point = mapToScene(event->pos());
-		distance1 = pow(roi_left_top.x() - temp_point.x(), 2) + 
-					pow(roi_left_top.y() - temp_point.y(), 2);
-		distance2 = pow(roi_right_bottom.x() - temp_point.x(), 2) + 
-					pow(roi_right_bottom.y() - temp_point.y(), 2);
-		m_dragged1 = distance1 < distance2 ? true : false;
-		m_dragged2 = distance1 < distance2 ? false : true;
+		distance1 = pow(roi_left_top1.x() - temp_point.x(), 2) + 
+					pow(roi_left_top1.y() - temp_point.y(), 2);
+		distance2 = pow(roi_right_bottom1.x() - temp_point.x(), 2) + 
+					pow(roi_right_bottom1.y() - temp_point.y(), 2);
+		distance3 = pow(roi_left_top2.x() - temp_point.x(), 2) + 
+					pow(roi_left_top2.y() - temp_point.y(), 2);
+		distance4 = pow(roi_right_bottom2.x() - temp_point.x(), 2) + 
+					pow(roi_right_bottom2.y() - temp_point.y(), 2);
+		if ((distance1 < distance2) && ((distance1 < distance3) && ((distance1 < distance4)))) {
+			m_dragged1 = true;
+			m_dragged2 = m_dragged3 = m_dragged4 = false;
+		}
+		if ((distance2 < distance1) && ((distance2 < distance3) && ((distance2 < distance4)))) {
+			m_dragged2 = true;
+			m_dragged1 = m_dragged3 = m_dragged4 = false;
+		}
+		if ((distance3 < distance1) && ((distance3 < distance2) && ((distance3 < distance4)))) {
+			m_dragged3 = true;
+			m_dragged1 = m_dragged2 = m_dragged4 = false;
+		}
+		if ((distance4 < distance1) && ((distance4 < distance2) && ((distance4 < distance3)))) {
+			m_dragged4 = true;
+			m_dragged1 = m_dragged2 = m_dragged3 = false;
+		}
 	}
     if (event->button() ==  Qt::RightButton){
         int width = this->sceneRect().width();
@@ -164,35 +183,63 @@ void MyGraphicsView::mouseMoveEvent(QMouseEvent * event)
 {
 	if (m_dragged1 == true) {
 		QPointF temp_point = mapToScene(event->pos());
-		if (roi_Group == nullptr)
+		if (roi_Group1 == nullptr)
 			return;
-		if (temp_point.x() >= roi_right_bottom.x() ||
-			temp_point.y() >= roi_right_bottom.y())
+		if (temp_point.x() >= roi_right_bottom1.x() ||
+			temp_point.y() >= roi_right_bottom1.y())
 			return;
 		QPoint temp_left_top = temp_point.toPoint();
-		QRect temp = roi_Group->rect().toRect();
+		QRect temp = roi_Group1->rect().toRect();
 		temp.setTopLeft(temp_left_top);
-		temp.setBottomRight(roi_right_bottom);
+		temp.setBottomRight(roi_right_bottom1);
 		DrawRoi(temp);
 	}
 	if (m_dragged2 == true) {
 		QPointF temp_point = mapToScene(event->pos());
-		if (temp_point.x() <= roi_left_top.x() ||
-			temp_point.y() <= roi_left_top.y())
+		if (temp_point.x() <= roi_left_top1.x() ||
+			temp_point.y() <= roi_left_top1.y())
 			return;
-		if (roi_Group == nullptr)
+		if (roi_Group1 == nullptr)
 			return;
 		QPoint temp_right_bottom = temp_point.toPoint();
-		QRect temp = roi_Group->rect().toRect();
-		temp.setTopLeft(roi_left_top);
+		QRect temp = roi_Group1->rect().toRect();
+		temp.setTopLeft(roi_left_top1);
 		temp.setBottomRight(temp_right_bottom);
 		DrawRoi(temp);
+	}
+	if (m_dragged3 == true) {
+		QPointF temp_point = mapToScene(event->pos());
+		if (roi_Group2 == nullptr)
+			return;
+		if (temp_point.x() >= roi_right_bottom2.x() ||
+			temp_point.y() >= roi_right_bottom2.y())
+			return;
+		QPoint temp_left_top = temp_point.toPoint();
+		QRect temp = roi_Group2->rect().toRect();
+		temp.setTopLeft(temp_left_top);
+		temp.setBottomRight(roi_right_bottom2);
+		DrawSubRoi(temp);
+	}
+	if (m_dragged4 == true) {
+		QPointF temp_point = mapToScene(event->pos());
+		if (temp_point.x() <= roi_left_top2.x() ||
+			temp_point.y() <= roi_left_top2.y())
+			return;
+		if (roi_Group2 == nullptr)
+			return;
+		QPoint temp_right_bottom = temp_point.toPoint();
+		QRect temp = roi_Group2->rect().toRect();
+		temp.setTopLeft(roi_left_top2);
+		temp.setBottomRight(temp_right_bottom);
+		DrawSubRoi(temp);
 	}
 }
 void MyGraphicsView::mouseReleaseEvent(QMouseEvent * event)
 {
 	m_dragged1 = false;
 	m_dragged2 = false;
+	m_dragged3 = false;
+	m_dragged4 = false;
 }
 void MyGraphicsView::refresh_view()
 {
@@ -202,6 +249,14 @@ void MyGraphicsView::refresh_view()
 	if (green_circleGroup != nullptr) {
 		this->scene()->removeItem(green_circleGroup);
 		green_circleGroup = nullptr;
+	}
+	if (roi_Group1 != nullptr) {
+		this->scene()->removeItem(roi_Group1);
+		roi_Group1 = nullptr;
+	}
+	if (roi_Group2 != nullptr) {
+		this->scene()->removeItem(roi_Group2);
+		roi_Group2 = nullptr;
 	}
 	for (int i = 0; i < point_list.size(); ++i) {
 		this->scene()->removeItem(point_list[i]);
@@ -253,6 +308,7 @@ void MyGraphicsView::removeDrawPoint(int row)
 {
 	if (row < 0)
 		return;
+
 	QGraphicsItemGroup *temp1 = point_list[row];
 	this->scene()->removeItem(temp1);
 	point_list.erase(point_list.begin() + row);
@@ -271,36 +327,73 @@ void MyGraphicsView::DrawRoi(QRect roi_rect)
 	if (sceneRect().isEmpty())
 		return;
 
-	if (roi_Group != nullptr) {
-		this->scene()->removeItem(roi_Group);
+	if (roi_Group1 != nullptr) {
+		this->scene()->removeItem(roi_Group1);
 	}
-	roi_left_top = roi_rect.topLeft();
-	roi_right_bottom = roi_rect.bottomRight();
-	if (roi_left_top.x() <= 0 || roi_left_top.y() <= 0 ||
-		roi_right_bottom.x() >= this->scene()->width() ||
-		roi_right_bottom.y() >= this->scene()->height()) {
+	roi_left_top1 = roi_rect.topLeft();
+	roi_right_bottom1 = roi_rect.bottomRight();
+	if (roi_left_top1.x() <= 0 || roi_left_top1.y() <= 0 ||
+		roi_right_bottom1.x() >= this->scene()->width() ||
+		roi_right_bottom1.y() >= this->scene()->height()) {
 		DrawRoi();
 		return;
 	}
-	roi_Group = new QGraphicsRectItem();
-	roi_Group->setFlags(QGraphicsItem::ItemIsSelectable |
+	roi_Group1 = new QGraphicsRectItem();
+	roi_Group1->setFlags(QGraphicsItem::ItemIsSelectable |
 		QGraphicsItem::ItemIsMovable);
-	roi_Group->setRect(roi_rect);
-	roi_Group->setPen(QPen(Qt::red, 3, Qt::DashDotLine));
-	this->scene()->addItem(roi_Group);
+	roi_Group1->setRect(roi_rect);
+	roi_Group1->setPen(QPen(Qt::red, 3, Qt::DashDotLine));
+	this->scene()->addItem(roi_Group1);
 }
 
 void MyGraphicsView::DrawRoi()
 {
 	if (sceneRect().isEmpty())
 		return;
-	roi_left_top.setX(0 + sceneRect().width() / 3);
-	roi_left_top.setY(0 + sceneRect().height() / 3);
-	roi_right_bottom.setX(2 * sceneRect().width() / 3);
-	roi_right_bottom.setY(2 * sceneRect().height() / 3);
+	roi_left_top1.setX(0 + sceneRect().width() / 4);
+	roi_left_top1.setY(0 + sceneRect().height() / 4);
+	roi_right_bottom1.setX(3 * sceneRect().width() / 4);
+	roi_right_bottom1.setY(3 * sceneRect().height() /4);
 	QRect roi_rect;
-	roi_rect.setTopLeft(roi_left_top);
-	roi_rect.setBottomRight(roi_right_bottom);
+	roi_rect.setTopLeft(roi_left_top1);
+	roi_rect.setBottomRight(roi_right_bottom1);
 	DrawRoi(roi_rect);
 }
 
+void MyGraphicsView::DrawSubRoi(QRect roi_rect)
+{
+	if (sceneRect().isEmpty())
+		return;
+
+	if (roi_Group2 != nullptr) {
+		this->scene()->removeItem(roi_Group2);
+	}
+	roi_left_top2 = roi_rect.topLeft();
+	roi_right_bottom2 = roi_rect.bottomRight();
+	if (roi_left_top2.x() <= 0 || roi_left_top2.y() <= 0 ||
+		roi_right_bottom2.x() >= this->scene()->width() ||
+		roi_right_bottom2.y() >= this->scene()->height()) {
+		DrawSubRoi();
+		return;
+	}
+	roi_Group2 = new QGraphicsRectItem();
+	roi_Group2->setFlags(QGraphicsItem::ItemIsSelectable |
+		QGraphicsItem::ItemIsMovable);
+	roi_Group2->setRect(roi_rect);
+	roi_Group2->setPen(QPen(Qt::green, 3, Qt::DashDotLine));
+	this->scene()->addItem(roi_Group2);
+}
+
+void MyGraphicsView::DrawSubRoi()
+{
+	if (sceneRect().isEmpty())
+		return;
+	roi_left_top2.setX(0 + sceneRect().width() / 3);
+	roi_left_top2.setY(0 + sceneRect().height() / 3);
+	roi_right_bottom2.setX(2 * sceneRect().width() / 3);
+	roi_right_bottom2.setY(2 * sceneRect().height() / 3);
+	QRect roi_rect;
+	roi_rect.setTopLeft(roi_left_top2);
+	roi_rect.setBottomRight(roi_right_bottom2);
+	DrawSubRoi(roi_rect);
+}

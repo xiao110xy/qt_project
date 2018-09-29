@@ -58,10 +58,12 @@ void Widget::setupWindows()
 void Widget::setupConnections()
 {
 	connect(this, SIGNAL(draw_roi(QRect)), ui->graphicsView2, SLOT(DrawRoi(QRect)));
+	connect(this, SIGNAL(draw_sub_roi(QRect)), ui->graphicsView2, SLOT(DrawSubRoi(QRect)));
 
 	connect(ui->load_base_image, SIGNAL(clicked()), this, SLOT(pushbotton_load_base_image()));
 	connect(ui->load_wrap_image, SIGNAL(clicked()), this, SLOT(pushbotton_load_wrap_image()));
-	connect(ui->get_roi, SIGNAL(clicked()), this, SLOT(pushbotton_get_roi()));
+    connect(ui->get_roi_1, SIGNAL(clicked()), this, SLOT(pushbotton_get_roi()));
+    connect(ui->get_roi_2, SIGNAL(clicked()), this, SLOT(pushbotton_get_sub_roi()));
     connect(ui->savePts, SIGNAL(clicked()), this, SLOT(pushbotton_savePts()));
 	connect(ui->reloadPts, SIGNAL(clicked()), this, SLOT(pushbotton_reloadPts()));
 
@@ -153,6 +155,19 @@ void Widget::pushbotton_get_roi()
 	if (ui->graphicsView2->sceneRect().isEmpty())
 		return;
 	QPoint roi_left_top, roi_right_bottom;
+	roi_left_top.setX(0 + ui->graphicsView2->sceneRect().width() / 4);
+	roi_left_top.setY(0 + ui->graphicsView2->sceneRect().height() / 4);
+	roi_right_bottom.setX(3 * ui->graphicsView2->sceneRect().width() / 4);
+	roi_right_bottom.setY(3 * ui->graphicsView2->sceneRect().height() / 4);
+	QRect roi_rect;
+	roi_rect.setTopLeft(roi_left_top);
+	roi_rect.setBottomRight(roi_right_bottom);
+	emit(draw_roi(roi_rect));
+}
+
+void Widget::pushbotton_get_sub_roi()
+{
+	QPoint roi_left_top, roi_right_bottom;
 	roi_left_top.setX(0 + ui->graphicsView2->sceneRect().width() / 3);
 	roi_left_top.setY(0 + ui->graphicsView2->sceneRect().height() / 3);
 	roi_right_bottom.setX(2 * ui->graphicsView2->sceneRect().width() / 3);
@@ -160,7 +175,7 @@ void Widget::pushbotton_get_roi()
 	QRect roi_rect;
 	roi_rect.setTopLeft(roi_left_top);
 	roi_rect.setBottomRight(roi_right_bottom);
-	emit(draw_roi(roi_rect));
+	emit(draw_sub_roi(roi_rect));
 }
 
 void Widget::pushbotton_savePts()
@@ -179,10 +194,13 @@ void Widget::pushbotton_savePts()
 	QTextStream Out(&f);
 	int row = ui->tableWidget->rowCount();
 	if (row > 0) {
-        Out << "0,0,0,0," << QString::number(row, 10) <<";"<<endl;
-		QRect temp = ui->graphicsView2->roi_Group->rect().toRect();
-		Out << temp.x()<<","<<temp.y() << "," <<
-			temp.width() << "," <<temp.height()<<";" << endl;
+        Out << "0,0,0,0,0," << QString::number(row, 10) <<";"<<endl;
+		QRect temp1 = ui->graphicsView2->roi_Group1->rect().toRect();
+		Out << temp1.x()<<","<<temp1.y() << "," <<
+			temp1.width() << "," <<temp1.height()<<";" << endl;
+		QRect temp2 = ui->graphicsView2->roi_Group2->rect().toRect();
+		Out << temp2.x() << "," << temp2.y() << "," <<
+			temp2.width() << "," << temp2.height() << ";" << endl;
 		for (int i = 0; i < row; ++i) {
 			Out << ui->tableWidget->item(i, 0)->text() << ",";
 			Out << ui->tableWidget->item(i, 1)->text() << ","; 
@@ -232,7 +250,7 @@ void Widget::pushbotton_reloadPts()
 		i = j;
 		temp.push_back(temp_value);
 	}
-    int nLine = temp[4];
+    int nLine = temp[temp.size()-1];
 	ui->tableWidget->clearContents();//只清除表中数据，不清除表头内容
 	ui->tableWidget->setRowCount(nLine);
 	LineStr = txtInput.readLine();
@@ -262,6 +280,35 @@ void Widget::pushbotton_reloadPts()
 		if (temp[2] > 0 && temp[3] > 0) {
 			QRect temp_rect(temp[0],temp[1],temp[2],temp[3]);
 			emit(draw_roi(temp_rect));
+		}
+	}
+	LineStr = txtInput.readLine();
+	temp_name = LineStr.toLocal8Bit();
+	temp.clear();
+	for (int i = 0; i < temp_name.size(); ++i) {
+		if (temp_name[i] >= 48 && temp_name[i] <= 57) {
+			double temp_value = 0;
+			int j = i;
+			int n = -1;
+			for (; j < temp_name.size(); ++j) {
+				if (temp_name[j] == 44 || temp_name[j] == 59) {
+					temp_value = n == -1 ? temp_value : temp_value / pow(10, j - n - 1);
+					temp.push_back(temp_value);
+					break;
+				}
+				if (temp_name[j] >= 48 && temp_name[j] <= 57) {
+					temp_value = temp_value * 10 + temp_name[j] - 48;
+				}
+				if (temp_name[j] == 46)
+					n = j;
+			}
+			i = j;
+		}
+	}
+	if (temp.size() == 4) {
+		if (temp[2] > 0 && temp[3] > 0) {
+			QRect temp_rect(temp[0], temp[1], temp[2], temp[3]);
+			emit(draw_sub_roi(temp_rect));
 		}
 	}
 	for (int n = 0; n < nLine; ++n) {

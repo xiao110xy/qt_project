@@ -28,6 +28,7 @@ void Dialog::setup_connections()
 	connect(ui->result_image,SIGNAL(clicked()), this, SLOT(push_result_image()));
 	connect(ui->result_txt,SIGNAL(clicked()), this, SLOT(push_result_txt()));
 	connect(ui->save_bat,SIGNAL(clicked()), this, SLOT(push_save_bat()));
+	connect(ui->open_bat,SIGNAL(clicked()), this, SLOT(push_open_bat()));
 
 }
 QStringList Dialog::file_filter(QStringList fileList)
@@ -79,6 +80,10 @@ void Dialog::push_open_image()
 		fileList = file_filter(fileList);
 		ui->listWidget->addItems(fileList);
 	}
+	int n = ui->listWidget->count();
+	for (int i = 0; i < n; ++i) {
+		ui->listWidget->item(i)->setSelected(true);
+	}
 }
 
 void Dialog::push_assist_water()
@@ -113,14 +118,15 @@ void Dialog::push_ref()
 }
 void Dialog::push_template_path()
 {
-	QString temp = QFileDialog::getOpenFileName(this, tr(""),
-		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-		tr("Files (*.xml)"));
-	ui->textEdit_template_path->setText(temp);
+    QString temp = QFileDialog::getOpenFileName(this, tr(""),
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+        tr("Files (*.bmp)"));
+    temp = temp.left(temp.size() - 6) + temp.right(4);
+    ui->textEdit_template_path->setText(temp);
 }
 void Dialog::push_sub()
 {
-	QString temp = QFileDialog::getSaveFileName(this,
+    QString temp = QFileDialog::getOpenFileName(this,
 		tr("save bmp"),
 		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
 		tr("Assit  Files (*.bmp)"));
@@ -156,7 +162,6 @@ void Dialog::push_save_bat()
 	QString assist_water= ui->textEdit_assist_water->toPlainText();
 	QString assist_txt= ui->textEdit_assist_txt->toPlainText();
 	QString assist_image= ui->textEdit_assist_image->toPlainText();
-	QString ref= ui->textEdit_ref->toPlainText();
 	QString template_path= ui->textEdit_template_path->toPlainText();
 	QString sub= ui->textEdit_sub->toPlainText();
 	QString result_image= ui->textEdit_result_image->toPlainText();
@@ -176,7 +181,7 @@ void Dialog::push_save_bat()
 	}
 	QTextStream Out(&f);
 	QList<QListWidgetItem*> temp = ui->listWidget->selectedItems();
-
+    QString ref= ui->textEdit_ref->toPlainText();
 	if (ui->checkBox->isEnabled()) {
 		if (ref == "") {
 			QMessageBox msgBox;
@@ -198,6 +203,7 @@ void Dialog::push_save_bat()
 		}
 	}
 	else {
+
 		for (int i = 0; i < temp.size(); ++i) {
 			Out << assist_water << " ";
 			Out << file_path+ "/"+temp[i]->text();
@@ -214,4 +220,117 @@ void Dialog::push_save_bat()
 	QMessageBox msgBox;
 	msgBox.setText("ok");
 	msgBox.exec();
+}
+
+void Dialog::push_open_bat()
+{
+    QString temp = QFileDialog::getOpenFileName(this, tr(""),
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+        tr("Files (*.*)"));
+    //QString temp = "E:/water_line/bat/20180618_ref.bat";
+    if (temp=="")
+        return;
+	QFile file_in(temp);
+	if (!file_in.open(QIODevice::ReadOnly))
+	{
+		QMessageBox msgBox;
+		msgBox.setText("error");
+		msgBox.exec();
+	}
+	QTextStream in(&file_in);
+	QString str;
+	str = in.readLine();
+	QStringList list = str.split(" ");
+	QStringList temp_list;
+	// exe
+	ui->textEdit_assist_water->setText(list[0]);
+	// image
+	str = list[1];
+	temp_list = str.split("/");
+	str.clear();
+	if (temp_list.size() == 1) {
+		file_path = "";
+	}
+	else {
+		for (int i = 0; i < temp_list.size() - 2; ++i) {
+			str = str + temp_list[i]+"/";
+		}
+		str = str + temp_list[temp_list.size() - 2];
+		file_path = str;
+	}	
+	if (!file_path.isEmpty())
+	{
+		int counter = ui->listWidget->count();
+		for (int index = 0; index<counter; index++)
+		{
+			QListWidgetItem *item = ui->listWidget->takeItem(0);
+			delete item;
+		}
+		//if (ui->listWidget->isemp)
+		QDir qDir = QDir(file_path);
+		fileList = qDir.entryList();
+		fileList = file_filter(fileList);
+		ui->listWidget->addItems(fileList);
+	}
+	int n = ui->listWidget->count();
+	for (int i = 0; i < n; ++i) {
+		ui->listWidget->item(i)->setSelected(true);
+	}
+	//
+	for (int i = 2; i < list.size(); ++i) {
+		str = list[i];
+		temp_list = str.split("=");
+		str = temp_list[0];
+		if (str == "assist_txt") {
+			ui->textEdit_assist_txt->setText(temp_list[1]);
+		}
+		if (str == "assist_image") {
+			ui->textEdit_assist_image->setText(temp_list[1]);
+		}
+		if (str == "template") {
+			ui->textEdit_template_path->setText(temp_list[1]);
+		}
+		if (str == "ref") {
+			ui->checkBox->setEnabled(true);
+			ui->textEdit_ref->setText(temp_list[1]);
+		}
+		if (str == "sub") {
+			ui->textEdit_sub->setText(temp_list[1]);
+		}
+		if (str == "result_image") {
+            str = temp_list[1];
+            QStringList temp_str_list = str.split("/");
+            str.clear();
+            QString temp_file_path;
+            if (temp_str_list.size() == 1) {
+                temp_file_path = "";
+            }
+            else {
+                for (int i = 0; i < temp_str_list.size() - 2; ++i) {
+                    str = str + temp_str_list[i]+"/";
+                }
+                str = str + temp_str_list[temp_str_list.size() - 2];
+                temp_file_path = str;
+            }
+            ui->textEdit_result_image->setText(temp_file_path);
+		}
+		if (str == "result_txt") {
+            str = temp_list[1];
+            QStringList temp_str_list = str.split("/");
+            str.clear();
+            QString temp_file_path;
+            if (temp_str_list.size() == 1) {
+                temp_file_path = "";
+            }
+            else {
+                for (int i = 0; i < temp_str_list.size() - 2; ++i) {
+                    str = str + temp_str_list[i]+"/";
+                }
+                str = str + temp_str_list[temp_str_list.size() - 2];
+                temp_file_path = str;
+            }
+            ui->textEdit_result_txt->setText(temp_file_path);
+		}
+		
+	}
 }
