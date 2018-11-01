@@ -121,7 +121,8 @@ void Dialog::push_template_path()
     QString temp = QFileDialog::getOpenFileName(this, tr(""),
         QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
         tr("Files (*.bmp)"));
-    temp = temp.left(temp.size() - 6) + temp.right(4);
+    temp = get_string(temp);
+    //temp = temp.left(temp.size() - 6) + temp.right(4);
     ui->textEdit_template_path->setText(temp);
 }
 void Dialog::push_sub()
@@ -333,4 +334,18 @@ void Dialog::push_open_bat()
 		}
 		
 	}
+}
+QString get_string(QString input_string)
+{
+    QString temp;
+    int n =0;
+    for (int i=input_string.size()-4;i>0;--i){
+        if(input_string[i-1]==95){
+            n = i-1;
+            break;
+        }
+
+    }
+    temp =input_string.left(n)+input_string.right(4);
+    return temp;
 }

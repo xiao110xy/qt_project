@@ -43,5 +43,6 @@ public slots:
 	void push_save_bat();
 	void push_open_bat();
 };
+QString get_string(QString input_string);
 
 #endif // DIALOG_H
