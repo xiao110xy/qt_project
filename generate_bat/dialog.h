@@ -42,6 +42,7 @@ public slots:
 	void push_result_txt();
 	void push_save_bat();
 	void push_open_bat();
+    void push_mask_image();
 };
 QString get_string(QString input_string);
 

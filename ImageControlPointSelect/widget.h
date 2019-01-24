@@ -22,7 +22,12 @@ using namespace std;
 namespace Ui {
 class Widget;
 }
-
+struct assist_information {
+	vector<int> first_line;
+	int roi[4];
+	int sub_roi[4];
+	vector<vector<double>> point;
+};
 class Widget : public QWidget
 {
 	Q_OBJECT
@@ -41,6 +46,9 @@ private:
 	QGraphicsScene *m_graphicsScene2;
 	QImage left_qimage;
 	QImage right_qimage;
+	int water_number = 0;
+	vector<assist_information> assist;
+	vector<double> get_line_number(string temp_name);
 signals:
 	void draw_roi(QRect rect);
 	void draw_sub_roi(QRect rect);

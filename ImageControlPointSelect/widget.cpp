@@ -47,12 +47,21 @@ void Widget::setupWindows()
 	// table 
 	ui->tableWidget->setColumnCount(4);
 	ui->tableWidget->setRowCount(0);
-	QStringList header;
-	header <<"Base X" << "Base Y" << "Wrap X" << "Wrap Y";
-	ui->tableWidget->setHorizontalHeaderLabels(header);
+	QStringList header1;
+	header1 <<"Base X" << "Base Y" << "Wrap X" << "Wrap Y";
+	ui->tableWidget->setHorizontalHeaderLabels(header1);
 	ui->tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 	ui->tableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 	ui->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);  //整行选中的方式
+	// list table 
+	ui->tableWidget_List->setColumnCount(6);
+	ui->tableWidget_List->setRowCount(0);
+	QStringList header2;
+	header2 << "ruler number" << "assist number" << "template lenght" << "order" << "back" << "point number";
+	ui->tableWidget_List->setHorizontalHeaderLabels(header2);
+	//ui->tableWidget_List->setSelectionMode(QAbstractItemView::SingleSelection);
+	//ui->tableWidget_List->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	//ui->tableWidget_List->setSelectionBehavior(QAbstractItemView::SelectRows);  //整行选中的方式
 }
 
 void Widget::setupConnections()
@@ -114,6 +123,33 @@ void Widget::pushbotton_load_base_image()
 	m_graphicsScene1->setSceneRect(left_qimage.rect());
 	m_graphicsScene1->addPixmap(QPixmap::fromImage(left_qimage));
 	ui->graphicsView1->viewFit();
+}
+
+vector<double> Widget::get_line_number(string temp_name)
+{
+	vector<double> temp;
+	temp.clear();
+	for (int i = 0; i < temp_name.size(); ++i) {
+		if (temp_name[i] >= 48 && temp_name[i] <= 57) {
+			double temp_value = 0;
+			int j = i;
+			int n = -1;
+			for (; j < temp_name.size(); ++j) {
+				if (temp_name[j] == 44 || temp_name[j] == 59) {
+					temp_value = n == -1 ? temp_value : temp_value / pow(10, j - n - 1);
+					temp.push_back(temp_value);
+					break;
+				}
+				if (temp_name[j] >= 48 && temp_name[j] <= 57) {
+					temp_value = temp_value * 10 + temp_name[j] - 48;
+				}
+				if (temp_name[j] == 46)
+					n = j;
+			}
+			i = j;
+		}
+	}
+	return temp;
 }
 
 void Widget::pushbotton_load_wrap_image()
@@ -214,11 +250,11 @@ void Widget::pushbotton_savePts()
 
 void Widget::pushbotton_reloadPts()
 {
-	QString qStrFilePath = QFileDialog::getOpenFileName(this,
-		tr("Open assit txt"),
-		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-		tr("Assit  Files (*.txt)"));
-	//QString qStrFilePath = "C:/Users/Alexia/Desktop/assist_1.txt";
+	//QString qStrFilePath = QFileDialog::getOpenFileName(this,
+	//	tr("Open assit txt"),
+	//	QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+	//	tr("Assit  Files (*.txt)"));
+	QString qStrFilePath = "E:/water_line/assist/assist_1.txt";
 	QFile f(qStrFilePath);
 	if (!f.open(QIODevice::ReadOnly | QIODevice::Text)){
 		cout << "Open failed." << endl;
@@ -229,123 +265,51 @@ void Widget::pushbotton_reloadPts()
     ui->graphicsView2->refresh_view();
     ui->tableWidget->clearContents();//只清除表中数据，不清除表头内容
     ui->tableWidget->setRowCount(0);
+	ui->tableWidget_List->clearContents();//只清除表中数据，不清除表头内容
+    ui->tableWidget_List->setRowCount(0);
 	//
 	QTextStream txtInput(&f);
 	QString LineStr= txtInput.readLine();
-	vector<int> temp;
+	vector<double> temp;
 	string temp_name;
 	temp_name = LineStr.toLocal8Bit();
-	temp.clear();
-	for (int i = 0; i < temp_name.size(); ++i) {
-		int temp_value = 0;
-		int j = 0;
-		for (j = i; j < temp_name.size(); ++j) {
-			if (temp_name[j] >= 48 && temp_name[j] <= 57) {
-				temp_value = temp_value * 10 + temp_name[j] - 48;
-			}
-			else {
-				break;
-			}
+	temp = get_line_number(temp_name);
+	water_number = temp[0];
+	while (1) {
+		temp_name = txtInput.readLine().toLocal8Bit();
+		temp = get_line_number(temp_name);
+		if (temp.size() < 5)
+			break;
+		assist_information temp_assist;
+		for (int i = 0; i < temp.size(); ++i) {
+			temp_assist.first_line.push_back(temp[i]);
 		}
-		i = j;
-		temp.push_back(temp_value);
-	}
-    int nLine = temp[temp.size()-1];
-	ui->tableWidget->clearContents();//只清除表中数据，不清除表头内容
-	ui->tableWidget->setRowCount(nLine);
-	LineStr = txtInput.readLine();
-	temp_name = LineStr.toLocal8Bit();
-	temp.clear();
-	for (int i = 0; i < temp_name.size(); ++i) {
-		if (temp_name[i] >= 48 && temp_name[i] <= 57) {
-			double temp_value = 0;
-			int j = i;
-			int n = -1;
-			for (; j < temp_name.size(); ++j) {
-				if (temp_name[j] == 44 || temp_name[j] == 59) {
-					temp_value = n == -1 ? temp_value : temp_value / pow(10, j - n - 1);
-					temp.push_back(temp_value);
-					break;
-				}
-				if (temp_name[j] >= 48 && temp_name[j] <= 57) {
-					temp_value = temp_value * 10 + temp_name[j] - 48;
-				}
-				if (temp_name[j] == 46)
-					n = j;
-			}
-			i = j;
+		int nLine = temp[temp.size() - 1];
+		ui->tableWidget->clearContents();//只清除表中数据，不清除表头内容
+		ui->tableWidget->setRowCount(nLine);
+		temp_name = txtInput.readLine().toLocal8Bit();
+		temp = get_line_number(temp_name);
+		for (int i = 0; i < temp.size(); ++i) {
+			temp_assist.roi[i]=temp[i];
 		}
-	}
-	if (temp.size() == 4) {
-		if (temp[2] > 0 && temp[3] > 0) {
-			QRect temp_rect(temp[0],temp[1],temp[2],temp[3]);
-			emit(draw_roi(temp_rect));
+		temp_name = txtInput.readLine().toLocal8Bit();
+		temp = get_line_number(temp_name);
+		for (int i = 0; i < temp.size(); ++i) {
+			temp_assist.sub_roi[i] = temp[i];
 		}
-	}
-	LineStr = txtInput.readLine();
-	temp_name = LineStr.toLocal8Bit();
-	temp.clear();
-	for (int i = 0; i < temp_name.size(); ++i) {
-		if (temp_name[i] >= 48 && temp_name[i] <= 57) {
-			double temp_value = 0;
-			int j = i;
-			int n = -1;
-			for (; j < temp_name.size(); ++j) {
-				if (temp_name[j] == 44 || temp_name[j] == 59) {
-					temp_value = n == -1 ? temp_value : temp_value / pow(10, j - n - 1);
-					temp.push_back(temp_value);
-					break;
-				}
-				if (temp_name[j] >= 48 && temp_name[j] <= 57) {
-					temp_value = temp_value * 10 + temp_name[j] - 48;
-				}
-				if (temp_name[j] == 46)
-					n = j;
-			}
-			i = j;
+		for (int n = 0; n < nLine; ++n) {
+			temp_name = txtInput.readLine().toLocal8Bit();
+			temp = get_line_number(temp_name);
+			temp_assist.point.push_back(temp);
 		}
+		assist.push_back(temp_assist);
 	}
-	if (temp.size() == 4) {
-		if (temp[2] > 0 && temp[3] > 0) {
-			QRect temp_rect(temp[0], temp[1], temp[2], temp[3]);
-			emit(draw_sub_roi(temp_rect));
-		}
-	}
-	for (int n = 0; n < nLine; ++n) {
-		vector<double> temp;
-		LineStr = txtInput.readLine();
-		temp_name = LineStr.toLocal8Bit();
-		for (int i = 0; i < temp_name.size(); ++i) {
-			if (temp_name[i] >= 48 && temp_name[i] <= 57) {
-				double temp_value = 0;
-				int j = i;
-				int n = -1;
-				for (; j < temp_name.size(); ++j) {
-					if (temp_name[j] == 44 || temp_name[j] == 59) {
-						temp_value = n == -1 ? temp_value : temp_value / pow(10, j - n - 1);
-						temp.push_back(temp_value);
-						break;
-					}
-					if (temp_name[j] >= 48 && temp_name[j] <= 57) {
-						temp_value = temp_value * 10 + temp_name[j] - 48;
-					}
-					if (temp_name[j] == 46)
-						n = j;
-				}
-				i = j;
-			}
-		}
-		ui->tableWidget->base_point.setX(temp[0]);
-		ui->tableWidget->base_point.setY(temp[1]);
-		ui->tableWidget->wrap_point.setX(temp[2]);
-		ui->tableWidget->wrap_point.setY(temp[3]);
-		ui->tableWidget->setItem(n, 0, new QTableWidgetItem(QString::number(temp[0], 'f', 2)));
-		ui->tableWidget->setItem(n, 1, new QTableWidgetItem(QString::number(temp[1], 'f', 2)));
-		ui->tableWidget->setItem(n, 2, new QTableWidgetItem(QString::number(temp[2], 'f', 2)));
-		ui->tableWidget->setItem(n, 3, new QTableWidgetItem(QString::number(temp[3], 'f', 2)));
-		emit(ui->tableWidget->add_base_index(ui->tableWidget->base_point));
-		emit(ui->tableWidget->add_wrap_index(ui->tableWidget->wrap_point));
-	}
-
 	f.close();
+	ui->tableWidget_List->setRowCount(assist.size());
+	for (int i = 0; i < assist.size(); ++i) {
+		for (int j = 0; j < assist[i].first_line.size(); ++j) {
+			ui->tableWidget_List->setItem(i, j, new QTableWidgetItem(QString::number(assist[i].first_line[j])));
+		}
+	}
+	
 }

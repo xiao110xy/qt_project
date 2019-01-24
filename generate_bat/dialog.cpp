@@ -6,7 +6,7 @@ Dialog::Dialog(QWidget *parent) :
     ui(new Ui::Dialog)
 {
     ui->setupUi(this);
-	ui->checkBox->setChecked(true);
+    ui->checkBox_ref->setChecked(true);
 	ui->listWidget->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	setup_connections();
 }
@@ -29,7 +29,7 @@ void Dialog::setup_connections()
 	connect(ui->result_txt,SIGNAL(clicked()), this, SLOT(push_result_txt()));
 	connect(ui->save_bat,SIGNAL(clicked()), this, SLOT(push_save_bat()));
 	connect(ui->open_bat,SIGNAL(clicked()), this, SLOT(push_open_bat()));
-
+    connect(ui->mask_image,SIGNAL(clicked()), this, SLOT(push_mask_image()));
 }
 QStringList Dialog::file_filter(QStringList fileList)
 {
@@ -120,7 +120,7 @@ void Dialog::push_template_path()
 {
     QString temp = QFileDialog::getOpenFileName(this, tr(""),
         QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-        tr("Files (*.bmp)"));
+        tr("Files (*.*)"));
     temp = get_string(temp);
     //temp = temp.left(temp.size() - 6) + temp.right(4);
     ui->textEdit_template_path->setText(temp);
@@ -146,6 +146,12 @@ void Dialog::push_result_txt()
 	file_path = QString::fromLocal8Bit(file_path.toLocal8Bit().data());
 	ui->textEdit_result_txt->setText(file_path);
 }
+void Dialog::push_mask_image()
+{
+    QString file_path = QFileDialog::getExistingDirectory(this, "...", "./");
+    file_path = QString::fromLocal8Bit(file_path.toLocal8Bit().data());
+    ui->textEdit_mask_image->setText(file_path);
+}
 void Dialog::push_save_bat()
 {
 
@@ -167,11 +173,12 @@ void Dialog::push_save_bat()
 	QString sub= ui->textEdit_sub->toPlainText();
 	QString result_image= ui->textEdit_result_image->toPlainText();
 	QString result_txt= ui->textEdit_result_txt->toPlainText();
+    QString mask_image= ui->textEdit_mask_image->toPlainText();
+    QString ref= ui->textEdit_ref->toPlainText();
 	if ((assist_water == "") ||
 		(assist_txt == "") ||
 		(assist_image == "") ||
 		(template_path == "") ||
-		(sub == "") ||
 		(result_image == "") ||
 		(result_txt == "")) {
 		QMessageBox msgBox;
@@ -182,11 +189,31 @@ void Dialog::push_save_bat()
 	}
 	QTextStream Out(&f);
 	QList<QListWidgetItem*> temp = ui->listWidget->selectedItems();
-    QString ref= ui->textEdit_ref->toPlainText();
-	if (ui->checkBox->isEnabled()) {
+
+    if (ui->checkBox_mask->isChecked()){
+        if (mask_image == "") {
+            QMessageBox msgBox;
+            msgBox.setText("problem_mask.");
+            msgBox.exec();
+            f.close();
+            return;
+        }
+        for (int i = 0; i < temp.size(); ++i) {
+
+            Out << assist_water << " ";
+            Out << file_path + "/" + temp[i]->text();
+            Out << " assist_txt=" << assist_txt;
+            Out << " assist_image=" << assist_image;
+            Out << " template=" << template_path;
+            Out << " mask_image=" << mask_image+ "/mask_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".png") ;
+            Out << " result_image=" << result_image + "/result_" + temp[i]->text();
+            Out << " result_txt=" << result_txt + "/result_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".txt") << endl;
+        }
+    }
+    else if (ui->checkBox_ref->isChecked()) {
 		if (ref == "") {
 			QMessageBox msgBox;
-			msgBox.setText("problem.");
+            msgBox.setText("problem_ref.");
 			msgBox.exec();
 			f.close();
 			return;
@@ -292,12 +319,30 @@ void Dialog::push_open_bat()
 			ui->textEdit_template_path->setText(temp_list[1]);
 		}
 		if (str == "ref") {
-			ui->checkBox->setEnabled(true);
+            ui->checkBox_ref->setEnabled(true);
 			ui->textEdit_ref->setText(temp_list[1]);
 		}
 		if (str == "sub") {
 			ui->textEdit_sub->setText(temp_list[1]);
 		}
+        if (str == "mask_image") {
+			ui->checkBox_mask->setChecked(true);
+            str = temp_list[1];
+            QStringList temp_str_list = str.split("/");
+            str.clear();
+            QString temp_file_path;
+            if (temp_str_list.size() == 1) {
+                temp_file_path = "";
+            }
+            else {
+                for (int i = 0; i < temp_str_list.size() - 2; ++i) {
+                    str = str + temp_str_list[i]+"/";
+                }
+                str = str + temp_str_list[temp_str_list.size() - 2];
+                temp_file_path = str;
+            }
+            ui->textEdit_mask_image->setText(temp_file_path);
+        }
 		if (str == "result_image") {
             str = temp_list[1];
             QStringList temp_str_list = str.split("/");
