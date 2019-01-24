@@ -1,6 +1,16 @@
 # users
 xy
 test
+xy_reid
 #
 .vs
 *.pro.user
+*.jpg
+*.stash
+*.filters
+#
+*/.vs
+*/debug
+*/release
+*/x64
+*/GeneratedFiles
