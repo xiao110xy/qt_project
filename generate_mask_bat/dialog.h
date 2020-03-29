@@ -33,10 +33,12 @@ private:
 public slots:
 	void push_open_image();
 	void push_assist_water();
-	void push_template_path();
 	void push_save_bat();
 	void push_open_bat();
     void push_mask_image();
+	void push_model_path();
+	void push_assist_txt();
+	void push_template_image();
 };
 QString get_string(QString input_string);
 

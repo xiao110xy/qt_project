@@ -15,7 +15,7 @@
 #include <QColor>
 #include <QScrollArea>
 #include <QAbstractListModel>
-
+#include <QKeyEvent>
 #include <qstringlistmodel.h>
 
 #include "ui_main_window.h"
@@ -28,7 +28,6 @@ class MainWindow : public QMainWindow, public Ui::MainWindow {
 
 public:
     MainWindow(QWidget *parent = 0, Qt::WindowFlags flags = 0);
-
 private:
 	
 	void loadConfigLabels();
@@ -37,6 +36,7 @@ private:
     ImageCanvas * getImageCanvas(int index);
     ImageCanvas * getCurrentImageCanvas();
     ImageMask _tmp;
+
 
 public:
 	ImageCanvas   *  image_canvas ;
@@ -83,6 +83,7 @@ public slots:
     void clearMask();
 	void updateConnect(int index);
     void treeWidgetClicked();
+
 };
 
 #endif

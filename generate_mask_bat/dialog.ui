@@ -7,13 +7,13 @@
     <x>0</x>
     <y>0</y>
     <width>872</width>
-    <height>789</height>
+    <height>878</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_13">
+  <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
@@ -58,9 +58,6 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_9"/>
-     </item>
-     <item>
       <layout class="QHBoxLayout" name="horizontalLayout_8">
        <item>
         <widget class="QPushButton" name="assist_water">
@@ -77,14 +74,14 @@
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
-        <widget class="QPushButton" name="template_path">
+        <widget class="QPushButton" name="model_path">
          <property name="text">
           <string>model</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QTextEdit" name="textEdit_template_path"/>
+        <widget class="QTextEdit" name="textEdit_model_path"/>
        </item>
       </layout>
      </item>
@@ -99,6 +96,38 @@
        </item>
        <item>
         <widget class="QTextEdit" name="textEdit_mask_image"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_11">
+       <item>
+        <widget class="QPushButton" name="assist_txt">
+         <property name="text">
+          <string>assist_txt</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_assist_txt"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_12">
+       <item>
+        <widget class="QPushButton" name="template_image">
+         <property name="text">
+          <string>template_image</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="textEdit_template_image">
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

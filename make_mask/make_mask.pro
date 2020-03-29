@@ -25,10 +25,45 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+    about_dialog.cpp \
+    image_canvas.cpp \
+    image_mask.cpp \
+    label_widget.cpp \
+    labels.cpp \
+    main.cpp \
+    main_window.cpp \
+    utils.cpp
 
 HEADERS += \
-        mainwindow.h
+    about_dialog.h \
+    image_canvas.h \
+    image_mask.h \
+    label_widget.h \
+    labels.h \
+    main_window.h \
+    pixel_annotation_tool_version.h \
+    utils.h
+	
+INCLUDEPATH += C:/opencv-3.4.1/xy_opencv/include
+
+LIBS += -LC:/opencv-3.4.1/xy_opencv/x64_static/lib/ \
+        -lopencv_world341 \
+        -lopencv_ts341 \
+        -lIlmImf \
+        -lippicvmt \
+        -lippiw \
+        -littnotify \
+        -llibjasper \
+        -llibjpeg \
+        -llibpng \
+        -llibprotobuf \
+        -llibtiff \
+        -llibwebp \
+        -lzlib
+
 
 FORMS += \
-        mainwindow.ui
+    main_window.ui
+
+SUBDIRS += \
+    make_mask.pro

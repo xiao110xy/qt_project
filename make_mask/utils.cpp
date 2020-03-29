@@ -1,7 +1,7 @@
 ﻿#include "utils.h"
 QImage xy_imread(QString filename)
 {
-	std::string temp = filename.toStdString();
+	std::string temp(filename.toLocal8Bit());
 	cv::Mat temp1 = cv::imread(temp,CV_LOAD_IMAGE_UNCHANGED);
 	std::vector<cv::Mat> mer(3, temp1);
 	cv::merge(mer, temp1);
@@ -12,7 +12,7 @@ void xy_imwrite(QString filename, QImage data)
 {
 	cv::Mat temp1 = qImage2Mat(data);
 	cvtColor(temp1, temp1, CV_BGR2GRAY);
-	std::string temp = filename.toStdString();
+	std::string temp(filename.toLocal8Bit());
 	temp1.convertTo(temp1, CV_8UC1);
 	cv::imwrite(temp, temp1);
 	return;

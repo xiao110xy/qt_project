@@ -1,6 +1,16 @@
 ﻿#include "dialog.h"
 #include "ui_dialog.h"
 
+QString get_string(QString temp, QChar split) {
+	QString result;
+	for (int i = temp.size() - 1; i >= 0; --i) {
+		if (temp[i] == split) {
+			result = temp.left(i);
+			break;
+		}
+	}
+	return result;
+}
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog)
@@ -22,13 +32,15 @@ void Dialog::setup_connections()
 	//connect(ui->assist_txt,SIGNAL(clicked()), this, SLOT(push_assist_txt()));
 	//connect(ui->assist_image,SIGNAL(clicked()), this, SLOT(push_assist_image()));
 	//connect(ui->ref,SIGNAL(clicked()), this, SLOT(push_ref()));
-	connect(ui->template_path,SIGNAL(clicked()), this, SLOT(push_template_path()));
-	//connect(ui->sub,SIGNAL(clicked()), this, SLOT(push_sub()));
-	//connect(ui->result_image,SIGNAL(clicked()), this, SLOT(push_result_image()));
 	//connect(ui->result_txt,SIGNAL(clicked()), this, SLOT(push_result_txt()));
 	connect(ui->save_bat,SIGNAL(clicked()), this, SLOT(push_save_bat()));
 	connect(ui->open_bat,SIGNAL(clicked()), this, SLOT(push_open_bat()));
-    connect(ui->mask_image,SIGNAL(clicked()), this, SLOT(push_mask_image()));
+	connect(ui->model_path,SIGNAL(clicked()), this, SLOT(push_model_path()));
+	//connect(ui->sub,SIGNAL(clicked()), this, SLOT(push_sub()));
+	//connect(ui->result_image,SIGNAL(clicked()), this, SLOT(push_result_image()));
+	connect(ui->mask_image, SIGNAL(clicked()), this, SLOT(push_mask_image()));
+	connect(ui->assist_txt, SIGNAL(clicked()), this, SLOT(push_assist_txt()));
+	connect(ui->template_image, SIGNAL(clicked()), this, SLOT(push_template_image()));
 }
 QStringList Dialog::file_filter(QStringList fileList)
 {
@@ -92,21 +104,22 @@ void Dialog::push_assist_water()
 		tr("Files (*.exe)"));
 	ui->textEdit_assist_water->setText(temp);
 }
-//void Dialog::push_assist_txt()
-//{
-//	QString temp = QFileDialog::getOpenFileName(this, tr(""),
-//		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-//		tr("Files (*.txt)"));
-//	ui->textEdit_assist_txt->setText(temp);
-//}
-//void Dialog::push_assist_image()
-//{
-//	QString temp = QFileDialog::getOpenFileName(this, tr(""),
-//		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-//		tr("Files (*.*)"));
-//	temp = temp.left(temp.size() - 6) + temp.right(4);
-//	ui->textEdit_assist_image->setText(temp);
-//}
+void Dialog::push_assist_txt()
+{
+	QString temp = QFileDialog::getOpenFileName(this, tr(""),
+		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+		tr("Files (*.txt)"));
+	ui->textEdit_assist_txt->setText(temp);
+}
+void Dialog::push_template_image()
+{
+	QString temp = QFileDialog::getOpenFileName(this, tr(""),
+		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+		tr("Files (*.*)"));
+	temp = get_string(temp, '_') + temp.right(4);
+
+	ui->textEdit_template_image->setText(temp);
+}
 //void Dialog::push_ref()
 //{
 //	QString temp = QFileDialog::getOpenFileName(this, tr(""),
@@ -115,15 +128,16 @@ void Dialog::push_assist_water()
 //	temp = temp.left(temp.size() - 6) + temp.right(4);
 //	ui->textEdit_ref->setText(temp);
 //}
-void Dialog::push_template_path()
+void Dialog::push_model_path()
 {
     QString temp = QFileDialog::getOpenFileName(this, tr(""),
         QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
         tr("Files (*.*)"));
     //temp = get_string(temp);
     //temp = temp.left(temp.size() - 6) + temp.right(4);
-    ui->textEdit_template_path->setText(temp);
+    ui->textEdit_model_path->setText(temp);
 }
+
 //void Dialog::push_sub()
 //{
 //    QString temp = QFileDialog::getOpenFileName(this,
@@ -154,10 +168,12 @@ void Dialog::push_mask_image()
 void Dialog::push_save_bat()
 {
 	QString assist_water = ui->textEdit_assist_water->toPlainText();
-	QString template_path = ui->textEdit_template_path->toPlainText();
+	QString model_path = ui->textEdit_model_path->toPlainText();
 	QString mask_image = ui->textEdit_mask_image->toPlainText();
+	QString assist_txt = ui->textEdit_assist_txt->toPlainText();
+	QString template_image = ui->textEdit_template_image->toPlainText();
 	if ((assist_water == "") ||
-		(template_path == "") ||
+		(model_path == "") ||
 		(mask_image == "")) {
 		QMessageBox msgBox;
 		msgBox.setText("problem.");
@@ -183,8 +199,10 @@ void Dialog::push_save_bat()
 	for (int i = 0; i < temp.size(); ++i) {
 		Out << assist_water << " ";
 		Out << file_path + "/" + temp[i]->text();
-		Out << " " << template_path;
-		Out << " " << mask_image + "/mask_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".png") << endl;
+		Out << " " << model_path;
+		Out << " mask_image=" << mask_image + "/mask_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".png");
+		Out << " assist_txt=" << assist_txt;
+		Out << " template=" << template_image << endl;
 	}
 	f.close();
 	QMessageBox msgBox;
@@ -214,6 +232,7 @@ void Dialog::push_open_bat()
 	if (list.size() < 4)
 		return;
 	QStringList temp_list;
+
 	// exe
 	ui->textEdit_assist_water->setText(list[0]);
 	// image
@@ -249,34 +268,34 @@ void Dialog::push_open_bat()
 		ui->listWidget->item(i)->setSelected(true);
 	}
 	//
-	ui->textEdit_template_path->setText(list[2]);
-	str = list[3];
-	QStringList temp_str_list = str.split("/");
-	str.clear();
-	QString temp_file_path;
-	if (temp_str_list.size() == 1) {
-		temp_file_path = "";
-	}
-	else {
-		for (int i = 0; i < temp_str_list.size() - 2; ++i) {
-			str = str + temp_str_list[i] + "/";
+	ui->textEdit_model_path->setText(list[2]);
+	for (int i = 3; i < list.size(); ++i) {
+		str = list[i];
+		temp_list = str.split("=");
+		str = temp_list[0];
+		if (str == "assist_txt") {
+			ui->textEdit_assist_txt->setText(temp_list[1]);
 		}
-		str = str + temp_str_list[temp_str_list.size() - 2];
-		temp_file_path = str;
-	}
-	ui->textEdit_mask_image->setText(temp_file_path);
-}
-QString get_string(QString input_string)
-{
-    QString temp;
-    int n =0;
-    for (int i=input_string.size()-4;i>0;--i){
-        if(input_string[i-1]==95){
-            n = i-1;
-            break;
-        }
 
-    }
-    temp =input_string.left(n)+input_string.right(4);
-    return temp;
+		if (str == "template") {
+			ui->textEdit_template_image->setText(temp_list[1]);
+		}
+		if (str == "mask_image") {
+			str = temp_list[1];
+			QStringList temp_str_list = str.split("/");
+			str.clear();
+			QString temp_file_path;
+			if (temp_str_list.size() == 1) {
+				temp_file_path = "";
+			}
+			else {
+				for (int i = 0; i < temp_str_list.size() - 2; ++i) {
+					str = str + temp_str_list[i] + "/";
+				}
+				str = str + temp_str_list[temp_str_list.size() - 2];
+				temp_file_path = str;
+			}
+			ui->textEdit_mask_image->setText(temp_file_path);
+		}
+	}
 }

@@ -1,6 +1,15 @@
 ﻿#include "dialog.h"
 #include "ui_dialog.h"
-
+QString get_string(QString temp, QChar split) {
+	QString result;
+	for (int i = temp.size() - 1; i >= 0; --i) {
+		if (temp[i] == split) {
+			result = temp.left(i);
+			break;
+		}
+	}
+	return result;
+}
 Dialog::Dialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::Dialog)
@@ -30,6 +39,7 @@ void Dialog::setup_connections()
 	connect(ui->save_bat,SIGNAL(clicked()), this, SLOT(push_save_bat()));
 	connect(ui->open_bat,SIGNAL(clicked()), this, SLOT(push_open_bat()));
     connect(ui->mask_image,SIGNAL(clicked()), this, SLOT(push_mask_image()));
+    connect(ui->deep_model,SIGNAL(clicked()), this, SLOT(push_deep_model()));
 }
 QStringList Dialog::file_filter(QStringList fileList)
 {
@@ -105,15 +115,15 @@ void Dialog::push_assist_image()
 	QString temp = QFileDialog::getOpenFileName(this, tr(""),
 		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
 		tr("Files (*.*)"));
-	temp = temp.left(temp.size() - 6) + temp.right(4);
+	temp = get_string(temp, '_') + temp.right(4);
 	ui->textEdit_assist_image->setText(temp);
 }
 void Dialog::push_ref()
 {
 	QString temp = QFileDialog::getOpenFileName(this, tr(""),
 		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-		tr("Files (*.bmp)"));
-	temp = temp.left(temp.size() - 6) + temp.right(4);
+		tr("Files (*.*)"));
+	temp = get_string(temp, '_') + temp.right(4);
 	ui->textEdit_ref->setText(temp);
 }
 void Dialog::push_template_path()
@@ -130,8 +140,8 @@ void Dialog::push_sub()
     QString temp = QFileDialog::getOpenFileName(this,
 		tr("save bmp"),
 		QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
-		tr("Assit  Files (*.bmp)"));
-	temp = temp.left(temp.size() - 6) + temp.right(4);
+		tr("Assit  Files (*.*)"));
+	temp = get_string(temp, '_') + temp.right(4);
 	ui->textEdit_sub->setText(temp);
 }
 void Dialog::push_result_image()
@@ -151,6 +161,14 @@ void Dialog::push_mask_image()
     QString file_path = QFileDialog::getExistingDirectory(this, "...", "./");
     file_path = QString::fromLocal8Bit(file_path.toLocal8Bit().data());
     ui->textEdit_mask_image->setText(file_path);
+}
+void Dialog::push_deep_model()
+{
+    QString temp = QFileDialog::getOpenFileName(this,
+        tr("deep model"),
+        QStandardPaths::writableLocation(QStandardPaths::CacheLocation),
+        tr("deep model (*.pt)"));
+    ui->textEdit_deep_model->setText(temp);
 }
 void Dialog::push_save_bat()
 {
@@ -174,75 +192,32 @@ void Dialog::push_save_bat()
 	QString result_image= ui->textEdit_result_image->toPlainText();
 	QString result_txt= ui->textEdit_result_txt->toPlainText();
     QString mask_image= ui->textEdit_mask_image->toPlainText();
+    QString deep_model= ui->textEdit_deep_model->toPlainText();
     QString ref= ui->textEdit_ref->toPlainText();
-	if ((assist_water == "") ||
-		(assist_txt == "") ||
-		(assist_image == "") ||
-		(template_path == "") ||
-		(result_image == "") ||
-		(result_txt == "")) {
-		QMessageBox msgBox;
-		msgBox.setText("problem.");
-		msgBox.exec();
-		f.close();
-		return;
-	}
+
 	QTextStream Out(&f);
 	QList<QListWidgetItem*> temp = ui->listWidget->selectedItems();
 
-    if (ui->checkBox_mask->isChecked()){
-        if (mask_image == "") {
-            QMessageBox msgBox;
-            msgBox.setText("problem_mask.");
-            msgBox.exec();
-            f.close();
-            return;
-        }
-        for (int i = 0; i < temp.size(); ++i) {
 
-            Out << assist_water << " ";
-            Out << file_path + "/" + temp[i]->text();
-            Out << " assist_txt=" << assist_txt;
-            Out << " assist_image=" << assist_image;
-            Out << " template=" << template_path;
+    for (int i = 0; i < temp.size(); ++i) {
+
+        Out << assist_water << " ";
+        Out << file_path + "/" + temp[i]->text();
+        Out << " assist_txt=" << assist_txt;
+        Out << " assist_image=" << assist_image;
+        Out << " template=" << template_path;
+        if (ui->checkBox_mask->isChecked()&&mask_image != "")
             Out << " mask_image=" << mask_image+ "/mask_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".png") ;
-            Out << " result_image=" << result_image + "/result_" + temp[i]->text();
-            Out << " result_txt=" << result_txt + "/result_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".txt") << endl;
-        }
+        if (ui->checkBox_ref->isChecked()&&ref != "")
+            Out << " ref=" << ref;
+        if (sub != "")
+            Out << " sub=" << sub;
+        if (deep_model!="")
+            Out <<" deep_model="<<deep_model;
+        Out << " result_image=" << result_image + "/result_" + temp[i]->text();
+        Out << " result_txt=" << result_txt + "/result_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".txt") << endl;
     }
-    else if (ui->checkBox_ref->isChecked()) {
-		if (ref == "") {
-			QMessageBox msgBox;
-            msgBox.setText("problem_ref.");
-			msgBox.exec();
-			f.close();
-			return;
-		}
-		for (int i = 0; i < temp.size(); ++i) {
-			Out << assist_water << " ";
-			Out << file_path + "/" + temp[i]->text();
-			Out << " assist_txt=" << assist_txt;
-			Out << " assist_image=" << assist_image;
-			Out << " template=" << template_path;
-			Out << " ref=" << ref;
-			Out << " sub=" << sub;
-			Out << " result_image=" << result_image + "/result_" + temp[i]->text();
-			Out << " result_txt=" << result_txt + "/result_" + (temp[i]->text().left(temp[i]->text().size() - 4)) + (".txt") << endl;
-		}
-	}
-	else {
 
-		for (int i = 0; i < temp.size(); ++i) {
-			Out << assist_water << " ";
-			Out << file_path+ "/"+temp[i]->text();
-			Out << " assist_txt=" << assist_txt;
-			Out << " assist_image=" << assist_image;
-			Out << " template=" << template_path;
-			Out << " sub=" << sub;
-			Out << " result_image=" << result_image+"/result_"+temp[i]->text();
-			Out << " result_txt=" << result_txt+"/result_"+(temp[i]->text().left(temp[i]->text().size() - 4))+(".txt") << endl;
-		}
-	}
 	Out << "pause";
 	f.close();
 	QMessageBox msgBox;
@@ -318,6 +293,8 @@ void Dialog::push_open_bat()
 		if (str == "template") {
 			ui->textEdit_template_path->setText(temp_list[1]);
 		}
+        if (str=="deep_model")
+            ui->textEdit_deep_model->setText(temp_list[1]);
 		if (str == "ref") {
             ui->checkBox_ref->setEnabled(true);
 			ui->textEdit_ref->setText(temp_list[1]);

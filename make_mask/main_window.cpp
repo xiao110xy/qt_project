@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent, Qt::WindowFlags flags)
 	watersh_action->setShortcut(Qt::Key_D);
 	opendir_action = new QAction(tr("&opendir_action"), this);
 	opendir_action->setShortcut(Qt::Key_O);
+
 	menuFile->addAction(save_action);
     menuEdit->addAction(close_tab_action);
 	menuEdit->addAction(undo_action);
@@ -111,6 +112,7 @@ void MainWindow::closeTab(int index) {
         image_canvas = getImageCanvas(std::min(index, tabWidget->count()-1));
     }
 }
+
 
 void MainWindow::loadConfigLabels() {
 	list_label->clear();
@@ -305,12 +307,14 @@ void MainWindow::on_tree_widget_img_currentItemChanged(QTreeWidgetItem *current,
 void MainWindow::on_actionOpenDir_triggered() {
 	statusBar()->clearMessage();
 	QString openedDir = QFileDialog::getExistingDirectory(this, "Choose a directory to be read in", curr_open_dir);
+    openedDir = QString::fromLocal8Bit(openedDir.toLocal8Bit().data());
 	if (openedDir.isEmpty())
 		return;
 	if (!isDirExist(openedDir+"/begin_mask"))
 		return;
 	if (!isDirExist(openedDir + "/mask"))
 		return;
+	//QString openedDir = "E:/water_segment/water_2";
 	curr_open_dir = openedDir;
 	QTreeWidgetItem *currentTreeDir = new QTreeWidgetItem(tree_widget_img);
 	tree_widget_img->setItemExpanded(currentTreeDir, true);
@@ -345,6 +349,7 @@ void MainWindow::on_actionOpenDir_triggered() {
 
 void MainWindow::saveConfigFile() {
 	QString file = QFileDialog::getSaveFileName(this, tr("Save Config File"), QString(), tr("JSon file (*.json)"));
+    file = QString::fromLocal8Bit(file.toLocal8Bit().data());
 	QFile save_file(file);
 	if (!save_file.open(QIODevice::WriteOnly)) {
 		qWarning("Couldn't open save file.");
@@ -359,6 +364,7 @@ void MainWindow::saveConfigFile() {
 
 void MainWindow::loadConfigFile() {
 	QString file = QFileDialog::getOpenFileName(this, tr("Open Config File"), QString(), tr("JSon file (*.json)"));
+    file = QString::fromLocal8Bit(file.toLocal8Bit().data());
 	QFile open_file(file);
 	if (!open_file.open(QIODevice::ReadOnly)) {
 		qWarning("Couldn't open save file.");
@@ -417,6 +423,7 @@ ImageCanvas * MainWindow::getCurrentImageCanvas() {
     return ic;
     
 }
+
 
 void MainWindow::swapView() {
     checkbox_watershed_mask->setCheckState(checkbox_watershed_mask->checkState() == Qt::CheckState::Checked ? Qt::CheckState::Unchecked : Qt::CheckState::Checked);

@@ -1,7 +1,7 @@
 ﻿
 #include "image_canvas.h"
 #include "main_window.h"
-
+#include <string>
 #include <QtDebug>
 #include <QtWidgets>
 
@@ -55,8 +55,7 @@ void ImageCanvas::loadImage(const QString &filename) {
 	if (!file.exists()) return;
 
 
-	_image = mat2QImage(cv::imread(_img_file.toStdString()));
-	
+	_image = mat2QImage(cv::imread(std::string(_img_file.toLocal8Bit())));
 
 	_watershed = ImageMask(_image.size());
 	_undo_list.clear();
@@ -262,8 +261,13 @@ void ImageCanvas::wheelEvent(QWheelEvent * event) {
 }
 
 void ImageCanvas::keyPressEvent(QKeyEvent * event) {
-	if (event->key() == Qt::Key_Space) {
+ 	if (event->key() == Qt::Key_Space) {
 		emit(_ui->button_watershed->released());
+	}
+	if (event->key() >= 48 && event->key() <= 57) {
+		int n = _ui->list_label->count();
+		n = (event->key() - 48) % n;
+		_ui->changeLabel(_ui->list_label->item(n), nullptr);
 	}
 }
 
